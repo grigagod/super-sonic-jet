@@ -13,10 +13,16 @@ import {
 import { Link, withRouter } from "react-router-dom";
 import { connect } from "react-redux";
 import { logout } from "../store/actions/auth";
+import { fetchCart } from "../store/actions/cart";
 
 class CustomLayout extends React.Component {
+  componentDidMount() {
+    this.props.fetchCart();
+  }
+
   render() {
-    const { authenticated } = this.props;
+    const { authenticated, cart, loading } = this.props;
+    console.log(cart);
     return (
       <div>
         <Menu inverted>
@@ -41,9 +47,33 @@ class CustomLayout extends React.Component {
             <Link to="/products">
               <Menu.Item header>Products</Menu.Item>
             </Link>
+            <Menu.Menu position="right">
+              <Dropdown
+                icon="cart"
+                loading={loading}
+                text={`${cart !== null ? cart.order_items.length : 0}`}
+                pointing
+                className="link item"
+              >
+                <Dropdown.Menu>
+                  {cart &&
+                    cart.order_items.map((element) => {
+                      return (
+                        <Dropdown.Item key={element.id}>
+                          {element.quantity} x {element.item}
+                        </Dropdown.Item>
+                      );
+                    })}
+                  {cart && cart.order_items.length < 1 ? (
+                    <Dropdown.Item>No items in your cart</Dropdown.Item>
+                  ) : null}
+                  <Dropdown.Divider />
+                  <Dropdown.Item icon="arrow right" text="Checkout" />
+                </Dropdown.Menu>
+              </Dropdown>
+            </Menu.Menu>
           </Container>
         </Menu>
-
         {this.props.children}
 
         <Segment
@@ -115,12 +145,15 @@ class CustomLayout extends React.Component {
 const mapStateToProps = (state) => {
   return {
     authenticated: state.auth.token !== null,
+    cart: state.cart.shoppingCart,
+    loading: state.cart.loading,
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     logout: () => dispatch(logout()),
+    fetchCart: () => dispatch(fetchCart()),
   };
 };
 
