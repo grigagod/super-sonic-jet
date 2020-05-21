@@ -22,7 +22,6 @@ class CustomLayout extends React.Component {
 
   render() {
     const { authenticated, cart, loading } = this.props;
-    console.log(cart);
     return (
       <div>
         <Menu inverted>
@@ -30,24 +29,12 @@ class CustomLayout extends React.Component {
             <Link to="/">
               <Menu.Item header>Home</Menu.Item>
             </Link>
-            {authenticated ? (
-              <Menu.Item header onClick={() => this.props.logout()}>
-                Logout
-              </Menu.Item>
-            ) : (
-              <React.Fragment>
-                <Link to="/login">
-                  <Menu.Item header>Login</Menu.Item>
-                </Link>
-                <Link to="/signup">
-                  <Menu.Item header>Signup</Menu.Item>
-                </Link>
-              </React.Fragment>
-            )}
             <Link to="/products">
               <Menu.Item header>Products</Menu.Item>
             </Link>
             <Menu.Menu position="right">
+            {authenticated ? (
+              <React.Fragment>
               <Dropdown
                 icon="cart"
                 loading={loading}
@@ -68,9 +55,23 @@ class CustomLayout extends React.Component {
                     <Dropdown.Item>No items in your cart</Dropdown.Item>
                   ) : null}
                   <Dropdown.Divider />
-                  <Dropdown.Item icon="arrow right" text="Checkout" />
+                  <Dropdown.Item icon="arrow right" text="Checkout" onClick={() => this.props.history.push('/order-summary')}/>
                 </Dropdown.Menu>
               </Dropdown>
+              <Menu.Item header onClick={() => this.props.logout()}>
+                Logout
+              </Menu.Item>
+              </React.Fragment> 
+              ) : (
+                <React.Fragment>
+                  <Link to="/login">
+                    <Menu.Item header>Login</Menu.Item>
+                  </Link>
+                  <Link to="/signup">
+                    <Menu.Item header>Signup</Menu.Item>
+                  </Link>
+                </React.Fragment>
+              )}
             </Menu.Menu>
           </Container>
         </Menu>
