@@ -3,7 +3,7 @@ import { Button, Container, Header, Icon, Label, Menu, Table, Tab } from 'semant
 import { authAxios } from '../utils';
 import { cartSuccess } from '../store/actions/cart';
 import { orderSummaryURL } from '../constants';
-
+import {Link} from 'react-router-dom';
 
 class OrderSummary extends React.Component {
 
@@ -79,7 +79,11 @@ class OrderSummary extends React.Component {
                 <Table.Footer>
                 <Table.Row>
                     <Table.HeaderCell colSpan='5' textAlign='right'>
-                    <Button color='yellow'>Checkout</Button>
+                    <Link to="/checkout">
+                      <Button floated="right" color='yellow'>
+                        Checkout
+                      </Button>
+                    </Link>
                     </Table.HeaderCell>
                 </Table.Row>
                 </Table.Footer>
