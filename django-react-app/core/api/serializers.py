@@ -54,7 +54,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return obj.get_final_price()
 
 
-
 class OrderSerializer(serializers.ModelSerializer):
     order_items = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()

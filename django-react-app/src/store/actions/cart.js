@@ -1,5 +1,5 @@
 import { CART_START, CART_SUCCESS, CART_FAIL } from "./actionTypes";
-import { authAxios } from "../../utils";
+import { getAuthAxios } from "../../utils";
 import { orderSummaryURL } from "../../constants";
 
 export const cartStart = () => {
@@ -25,12 +25,14 @@ export const cartFail = (error) => {
 export const fetchCart = () => {
   return (dispatch) => {
     dispatch(cartStart());
+    let authAxios = getAuthAxios();
     authAxios
       .get(orderSummaryURL)
       .then((res) => {
         dispatch(cartSuccess(res.data));
       })
       .catch((err) => {
+        console.log(err);
         dispatch(cartFail(err));
       });
   };

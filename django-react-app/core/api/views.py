@@ -7,13 +7,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from core.models import Item, OrderItem, Order
 from .serializers import ItemSerializer, OrderSerializer
-from .models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile
+from core.models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile
 
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 class ItemListView(ListAPIView):
     permission_classes = (AllowAny,)
@@ -24,6 +24,7 @@ class ItemListView(ListAPIView):
 class AddToCartView(APIView):
     def post(self, request, *args, **kwargs):
         slug = request.data.get('slug', None)
+        print(slug)
         if slug is None:
             return Response({"message": "Invalid request"}, status=HTTP_400_BAD_REQUEST)
         item = get_object_or_404(Item, slug=slug)
@@ -64,6 +65,7 @@ class OrderDetailView(RetrieveAPIView):
             return order
         except ObjectDoesNotExist:
             return Response({"message": "You do not have an active order"}, status=HTTP_400_BAD_REQUEST)
+
 
 class PaymentView(APIView):
 
