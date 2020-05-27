@@ -60,6 +60,28 @@ export const authLogin = (username, password) => {
   };
 };
 
+export const authLoginGoogle = (res) => {
+  return (dispatch) => {
+    console.log("post");
+    dispatch(authStart());
+    axios
+      .post("http://127.0.0.1:8000/api/google/", {
+        access_token: res.accessToken,
+      })
+      .then((res) => {
+        const token = res.data.key;
+        const expirationDate = new Date(new Date().getTime() + 3600 * 1000);
+        localStorage.setItem("token", token);
+        localStorage.setItem("expirationDate", expirationDate);
+        dispatch(authSuccess(token));
+        dispatch(checkAuthTimeout(3600));
+      })
+      .catch((err) => {
+        dispatch(authFail(err));
+      });
+  };
+};
+
 export const authSignup = (username, email, password1, password2) => {
   return (dispatch) => {
     dispatch(authStart());

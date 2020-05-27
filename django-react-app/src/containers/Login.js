@@ -5,23 +5,30 @@ import {
   Grid,
   Header,
   Message,
-  Segment
+  Segment,
+  Divider,
 } from "semantic-ui-react";
 import { connect } from "react-redux";
 import { NavLink, Redirect } from "react-router-dom";
-import { authLogin } from "../store/actions/auth";
+import { GoogleLogin } from "react-google-login";
+import { authLogin, authLoginGoogle } from "../store/actions/auth";
 
 class LoginForm extends React.Component {
   state = {
     username: "",
-    password: ""
+    password: "",
   };
 
-  handleChange = e => {
+  responseGoogle = (response) => {
+    console.log(response);
+    this.props.loginViaGoogle(response);
+  };
+
+  handleChange = (e) => {
     this.setState({ [e.target.name]: e.target.value });
   };
 
-  handleSubmit = e => {
+  handleSubmit = (e) => {
     e.preventDefault();
     const { username, password } = this.state;
     this.props.login(username, password);
@@ -77,6 +84,14 @@ class LoginForm extends React.Component {
                 >
                   Login
                 </Button>
+                <Divider />
+                <GoogleLogin
+                  clientId="826542329715-8m5f96591gocubneb5di8nq93c5m8goe.apps.googleusercontent.com"
+                  buttonText="Login via Google"
+                  onSuccess={this.responseGoogle}
+                  onFailure={this.responseGoogle}
+                  cookiePolicy={"single_host_origin"}
+                />
               </Segment>
             </Form>
             <Message>
@@ -89,21 +104,19 @@ class LoginForm extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     loading: state.auth.loading,
     error: state.auth.error,
-    token: state.auth.token
+    token: state.auth.token,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    login: (username, password) => dispatch(authLogin(username, password))
+    login: (username, password) => dispatch(authLogin(username, password)),
+    loginViaGoogle: (res) => dispatch(authLoginGoogle(res)),
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LoginForm);
+export default connect(mapStateToProps, mapDispatchToProps)(LoginForm);

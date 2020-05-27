@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'corsheaders',
     'rest_auth',
     'rest_auth.registration',
@@ -39,6 +40,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'home.urls'
+
 
 TEMPLATES = [
     {

@@ -9,10 +9,16 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from .serializers import ItemSerializer, OrderSerializer
 from core.models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from rest_auth.registration.views import SocialLoginView
 
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
 
 
 class ItemListView(ListAPIView):
