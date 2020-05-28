@@ -2,14 +2,14 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, DestroyAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from .serializers import ItemSerializer, OrderSerializer
 from core.models import Item, OrderItem, Order, Address, Payment, Coupon, Refund, UserProfile
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from .serializers import ItemSerializer, OrderSerializer, ItemDetailSerializer
 from rest_auth.registration.views import SocialLoginView
 
 import stripe
@@ -25,6 +25,17 @@ class ItemListView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ItemSerializer
     queryset = Item.objects.all()
+
+
+class ItemDetailView(RetrieveAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemDetailSerializer
+    queryset = Item.objects.all()
+
+
+class OrderItemDeleteView(DestroyAPIView):
+    permission_classes = (IsAuthenticated, )
+    queryset = OrderItem.objects.all()
 
 
 class AddToCartView(APIView):

@@ -81,7 +81,7 @@ class ProductList extends React.Component {
                 <Item.Image src={item.image} />
 
                 <Item.Content>
-                  <Item.Header as="a">{item.title}</Item.Header>
+                  <Item.Header as="a" onClick={() => this.props.history.push(`/products/${item.id}`)}>{item.title}</Item.Header>
                   <Item.Meta>
                     <span className="cinema">{item.category}</span>
                   </Item.Meta>
@@ -103,8 +103,8 @@ class ProductList extends React.Component {
                           item.label === "primary"
                             ? "blue"
                             : item.label === "secondary"
-                            ? "green"
-                            : "olive"
+                              ? "green"
+                              : "olive"
                         }
                       >
                         {item.label}

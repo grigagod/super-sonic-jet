@@ -11,7 +11,7 @@ import {
 } from "semantic-ui-react";
 import { getAuthAxios } from "../utils";
 import { cartSuccess } from "../store/actions/cart";
-import { orderSummaryURL } from "../constants";
+import { addToCartURL, orderSummaryURL, OrderItemDeleteURL } from "../constants";
 import { Link } from "react-router-dom";
 
 class OrderSummary extends React.Component {
@@ -38,6 +38,38 @@ class OrderSummary extends React.Component {
       });
   };
 
+  handleFormatData = itemVariations => {
+    return Object.keys(itemVariations).map(key => {
+      return itemVariations[key].id;
+    });
+  };
+
+  handleAddToCart = (slug, itemVariations) => {
+    this.setState({ loading: true });
+    const variations = this.handleFormatData(itemVariations);
+    let authAxios = getAuthAxios();
+    authAxios
+      .post(addToCartURL, { slug, variations })
+      .then(res => {
+        this.handleFetchOrder();
+        this.setState({ loading: false });
+      })
+      .catch(err => {
+        this.setState({ error: err, loading: false });
+      });
+  };
+
+  handleRemoveItem = itemID => {
+    let authAxios = getAuthAxios();
+    authAxios.post(OrderItemDeleteURL(itemID))
+      .then((res) => {
+        this.handleFetchOrder();
+      })
+      .catch((err) => {
+        this.setState({ error: err });
+      });
+  }
+
   render() {
     const { data, error, loading } = this.state;
     console.log(data);
@@ -63,7 +95,24 @@ class OrderSummary extends React.Component {
                     <Table.Cell>{i}</Table.Cell>
                     <Table.Cell>{order_item.item}</Table.Cell>
                     <Table.Cell>${order_item.item_obj.price}</Table.Cell>
-                    <Table.Cell>{order_item.quantity}</Table.Cell>
+                    <Table.Cell textAlign='center'>
+                      <Icon
+                        name="plus"
+                        style={{ float: "left", cursor: "pointer" }}
+                        onClick={() =>
+                          this.handleAddToCart(
+                            order_item.item.slug,
+                            order_item.item_variations
+                          )
+                        }
+                      />
+                      {order_item.quantity}
+                      <Icon
+                        name="minus"
+                        style={{ float: "right", cursor: "pointer" }}
+                        onClick={() => this.handleRemoveItem(order_item.id)}
+                      />
+                    </Table.Cell>
                     <Table.Cell>
                       {order_item.item_obj.discount_price && (
                         <Label color="green" ribbon>
@@ -71,6 +120,12 @@ class OrderSummary extends React.Component {
                         </Label>
                       )}
                       ${order_item.final_price}
+                      <Icon
+                        name="trash"
+                        color="red"
+                        style={{ float: "right", cursor: "pointer" }}
+                        onClick={() => this.handleRemoveItem(order_item.id)}
+                      />
                     </Table.Cell>
                   </Table.Row>
                 );
