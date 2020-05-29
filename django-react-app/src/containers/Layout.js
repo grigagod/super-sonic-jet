@@ -33,35 +33,41 @@ class CustomLayout extends React.Component {
               <Menu.Item header>Products</Menu.Item>
             </Link>
             <Menu.Menu position="right">
-            {authenticated ? (
-              <React.Fragment>
-              <Dropdown
-                icon="cart"
-                loading={loading}
-                text={`${cart !== null ? cart.order_items.length : 0}`}
-                pointing
-                className="link item"
-              >
-                <Dropdown.Menu>
-                  {cart &&
-                    cart.order_items.map((element) => {
-                      return (
-                        <Dropdown.Item key={element.id}>
-                          {element.quantity} x {element.item}
-                        </Dropdown.Item>
-                      );
-                    })}
-                  {cart && cart.order_items.length < 1 ? (
-                    <Dropdown.Item>No items in your cart</Dropdown.Item>
-                  ) : null}
-                  <Dropdown.Divider />
-                  <Dropdown.Item icon="arrow right" text="Checkout" onClick={() => this.props.history.push('/order-summary')}/>
-                </Dropdown.Menu>
-              </Dropdown>
-              <Menu.Item header onClick={() => this.props.logout()}>
-                Logout
-              </Menu.Item>
-              </React.Fragment> 
+              {authenticated ? (
+                <React.Fragment>
+                  <Dropdown
+                    icon="cart"
+                    loading={loading}
+                    text={`${cart !== null ? cart.order_items.length : 0}`}
+                    pointing
+                    className="link item"
+                  >
+                    <Dropdown.Menu>
+                      {cart &&
+                        cart.order_items.map((element) => {
+                          return (
+                            <Dropdown.Item key={element.id}>
+                              {element.quantity} x {element.item.title}
+                            </Dropdown.Item>
+                          );
+                        })}
+                      {cart && cart.order_items.length < 1 ? (
+                        <Dropdown.Item>No items in your cart</Dropdown.Item>
+                      ) : null}
+                      <Dropdown.Divider />
+                      <Dropdown.Item
+                        icon="arrow right"
+                        text="Checkout"
+                        onClick={() =>
+                          this.props.history.push("/order-summary")
+                        }
+                      />
+                    </Dropdown.Menu>
+                  </Dropdown>
+                  <Menu.Item header onClick={() => this.props.logout()}>
+                    Logout
+                  </Menu.Item>
+                </React.Fragment>
               ) : (
                 <React.Fragment>
                   <Link to="/login">

@@ -8,10 +8,20 @@ import {
   Menu,
   Table,
   Tab,
+  Image,
+  Loader,
+  Message,
+  Dimmer,
+  Segment,
 } from "semantic-ui-react";
 import { getAuthAxios } from "../utils";
 import { cartSuccess } from "../store/actions/cart";
-import { addToCartURL, orderSummaryURL, OrderItemDeleteURL } from "../constants";
+import {
+  addToCartURL,
+  orderSummaryURL,
+  OrderItemDeleteURL,
+  orderItemUpdateQuantityURL,
+} from "../constants";
 import { Link } from "react-router-dom";
 
 class OrderSummary extends React.Component {
@@ -34,12 +44,27 @@ class OrderSummary extends React.Component {
         this.setState({ data: res.data, loading: false });
       })
       .catch((err) => {
-        this.setState({ error: err, loading: false });
+        if (err.response.status === 404) {
+          this.setState({
+            error: "You currently do not have an order",
+            loading: false,
+          });
+        } else {
+          this.setState({ error: err, loading: false });
+        }
       });
   };
 
-  handleFormatData = itemVariations => {
-    return Object.keys(itemVariations).map(key => {
+  renderVariations = (orderItem) => {
+    let text = "";
+    orderItem.item_variations.forEach((iv) => {
+      text += `${iv.variation.name}: ${iv.value}, `;
+    });
+    return text;
+  };
+
+  handleFormatData = (itemVariations) => {
+    return Object.keys(itemVariations).map((key) => {
       return itemVariations[key].id;
     });
   };
@@ -50,25 +75,38 @@ class OrderSummary extends React.Component {
     let authAxios = getAuthAxios();
     authAxios
       .post(addToCartURL, { slug, variations })
-      .then(res => {
+      .then((res) => {
         this.handleFetchOrder();
         this.setState({ loading: false });
       })
-      .catch(err => {
+      .catch((err) => {
         this.setState({ error: err, loading: false });
       });
   };
 
-  handleRemoveItem = itemID => {
+  handleRemoveQuantityFromCart = (slug) => {
     let authAxios = getAuthAxios();
-    authAxios.post(OrderItemDeleteURL(itemID))
+    authAxios
+      .post(orderItemUpdateQuantityURL, { slug })
       .then((res) => {
         this.handleFetchOrder();
       })
       .catch((err) => {
         this.setState({ error: err });
       });
-  }
+  };
+
+  handleRemoveItem = (itemID) => {
+    let authAxios = getAuthAxios();
+    authAxios
+      .delete(OrderItemDeleteURL(itemID))
+      .then((res) => {
+        this.handleFetchOrder();
+      })
+      .catch((err) => {
+        this.setState({ error: err });
+      });
+  };
 
   render() {
     const { data, error, loading } = this.state;
@@ -76,6 +114,22 @@ class OrderSummary extends React.Component {
     return (
       <Container>
         <Header as="h5">OrderSummary</Header>
+        {error && (
+          <Message
+            error
+            header="There was an error"
+            content={JSON.stringify(error)}
+          />
+        )}
+        {loading && (
+          <Segment>
+            <Dimmer active inverted>
+              <Loader inverted>Loading</Loader>
+            </Dimmer>
+
+            <Image src="https://react.semantic-ui.com/images/wireframe/short-paragraph.png" />
+          </Segment>
+        )}
         {data && (
           <Table celled>
             <Table.Header>
@@ -90,12 +144,16 @@ class OrderSummary extends React.Component {
 
             <Table.Body>
               {data.order_items.map((order_item, i) => {
+                console.log(order_item);
                 return (
                   <Table.Row key={order_item.id}>
-                    <Table.Cell>{i}</Table.Cell>
-                    <Table.Cell>{order_item.item}</Table.Cell>
-                    <Table.Cell>${order_item.item_obj.price}</Table.Cell>
-                    <Table.Cell textAlign='center'>
+                    <Table.Cell>{i + 1}</Table.Cell>
+                    <Table.Cell>
+                      {order_item.item.title} -{" "}
+                      {this.renderVariations(order_item)}
+                    </Table.Cell>
+                    <Table.Cell>${order_item.item.price}</Table.Cell>
+                    <Table.Cell textAlign="center">
                       <Icon
                         name="plus"
                         style={{ float: "left", cursor: "pointer" }}
@@ -110,11 +168,15 @@ class OrderSummary extends React.Component {
                       <Icon
                         name="minus"
                         style={{ float: "right", cursor: "pointer" }}
-                        onClick={() => this.handleRemoveItem(order_item.id)}
+                        onClick={() =>
+                          this.handleRemoveQuantityFromCart(
+                            order_item.item.slug
+                          )
+                        }
                       />
                     </Table.Cell>
                     <Table.Cell>
-                      {order_item.item_obj.discount_price && (
+                      {order_item.item.discount_price && (
                         <Label color="green" ribbon>
                           ON DISCOUNT
                         </Label>

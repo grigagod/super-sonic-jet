@@ -6,7 +6,8 @@ from .views import (
     OrderDetailView,
     PaymentView,
     GoogleLogin,
-    OrderItemDeleteView
+    OrderItemDeleteView,
+    OrderQuantityUpdateView
 )
 
 urlpatterns = [
@@ -16,6 +17,7 @@ urlpatterns = [
     path('order-summary/', OrderDetailView.as_view(), name='order-summary'),
     path('checkout/', PaymentView.as_view(), name='checkout'),
     path('google/', GoogleLogin.as_view(), name='google_login'),
-    path('order-items/<pk>/delete/',
-         OrderItemDeleteView.as_view(), name='order-item-delete')
+    path('order-items/<pk>/delete/', OrderItemDeleteView.as_view(), name='order-item-delete'),
+    path('order-item/update-quantity/',
+         OrderQuantityUpdateView.as_view(), name='order-item-update-quantity'),
 ]

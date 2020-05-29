@@ -40,13 +40,12 @@ class ProductList extends React.Component {
 
   handleAddToCart = (slug) => {
     this.setState({ loading: true });
-    this.props.fetchCart();
     let authAxios = getAuthAxios();
     authAxios
       .post(addToCartURL, { slug })
       .then((res) => {
         console.log(res);
-        this.props.fetchCart();
+        this.props.refreshCart();
         this.setState({ loading: false });
       })
       .catch((err) => {
@@ -81,7 +80,14 @@ class ProductList extends React.Component {
                 <Item.Image src={item.image} />
 
                 <Item.Content>
-                  <Item.Header as="a" onClick={() => this.props.history.push(`/products/${item.id}`)}>{item.title}</Item.Header>
+                  <Item.Header
+                    as="a"
+                    onClick={() =>
+                      this.props.history.push(`/products/${item.id}`)
+                    }
+                  >
+                    {item.title}
+                  </Item.Header>
                   <Item.Meta>
                     <span className="cinema">{item.category}</span>
                   </Item.Meta>
@@ -92,7 +98,9 @@ class ProductList extends React.Component {
                       floated="right"
                       icon
                       labelPosition="right"
-                      onClick={() => this.handleAddToCart(item.slug)}
+                      onClick={() =>
+                        this.props.history.push(`/products/${item.id}`)
+                      }
                     >
                       Add to cart
                       <Icon name="cart plus" />
@@ -103,8 +111,8 @@ class ProductList extends React.Component {
                           item.label === "primary"
                             ? "blue"
                             : item.label === "secondary"
-                              ? "green"
-                              : "olive"
+                            ? "green"
+                            : "olive"
                         }
                       >
                         {item.label}
