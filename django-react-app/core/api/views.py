@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.template.loader import render_to_string
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, CreateAPIView,
@@ -13,6 +14,7 @@ from rest_framework.generics import (
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from core.models import Item, OrderItem, Order
 from .serializers import (
@@ -25,39 +27,43 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from rest_framework.decorators import api_view
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
 from rest_framework.exceptions import NotFound
+from django.core.mail import EmailMessage
+from django.http import HttpResponse
+from django.template import loader
 
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+class VerifyEmailView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        username = Token.objects.get(key=request.query_params.get('token', None)).user.username
+        user = UserProfile.objects.filter(user__username__startswith=username)[0]
+        user.email_verification = True
+        user.save()
+        template = loader.get_template('email_success.html')
+        context = {
+            'token': request.query_params.get('token', None),
+        }
+        return HttpResponse(template.render(context, request))
+
+
 class ConfirmEmailView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ]
 
-    def get(self, *args, **kwargs):
-        self.object = confirmation = self.get_object()
-        confirmation.confirm(self.request)
-        print('it works')
-        # A React Router Route will handle the failure scenario
-        return Response(HTTP_200_OK)
-
-    def get_object(self, queryset=None):
-        key = self.kwargs['key']
-        email_confirmation = EmailConfirmationHMAC.from_key(key)
-        if not email_confirmation:
-            if queryset is None:
-                queryset = self.get_queryset()
-            try:
-                email_confirmation = queryset.get(key=key.lower())
-            except EmailConfirmation.DoesNotExist:
-                # A React Router Route will handle the failure scenario
-                return Response(HTTP_400_BAD_REQUEST)
-        return email_confirmation
-
-    def get_queryset(self):
-        qs = EmailConfirmation.objects.all_valid()
-        qs = qs.select_related("email_address__user")
-        return qs
+    def get(self, request, *args, **kwargs):
+        template = render_to_string('email_template.txt', {'name': request.query_params.get('username', 'client'), 'token': request.query_params.get('token', None)})
+        email = EmailMessage(
+            'Super-sonic-jet-administration',
+            template,
+            settings.EMAIL_HOST_USER,
+            [self.request.query_params.get('email', 'grishapod228@gmail.com')]
+        )
+        email.fail_silently = False
+        email.send()
+        return Response(request.query_params, status=HTTP_200_OK)
 
 
 @api_view()

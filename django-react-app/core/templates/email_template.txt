@@ -1,0 +1,5 @@
+Hey {{ username }}!
+
+If you wanna verify your email, follow this link:
+
+http:/127.0.0.1:8000/api/verify-last/?token={{token}}

@@ -7,7 +7,10 @@ from .views import (
     PaymentView,
     GoogleLogin,
     OrderItemDeleteView,
-    OrderQuantityUpdateView
+    OrderQuantityUpdateView,
+    ConfirmEmailView,
+    VerifyEmailView
+
 )
 
 urlpatterns = [
@@ -20,4 +23,6 @@ urlpatterns = [
     path('order-items/<pk>/delete/', OrderItemDeleteView.as_view(), name='order-item-delete'),
     path('order-item/update-quantity/',
          OrderQuantityUpdateView.as_view(), name='order-item-update-quantity'),
+    path('verify/', ConfirmEmailView.as_view(), name='confirm-email'),
+    path('verify-last/', VerifyEmailView.as_view(), name='verify-email'),
 ]

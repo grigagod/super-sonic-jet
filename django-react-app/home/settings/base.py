@@ -13,7 +13,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django.core.mail',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -41,11 +41,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'home.urls'
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'core/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -83,3 +82,9 @@ REST_FRAMEWORK = {
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'supersjwtf@gmail.com'
+EMAIL_HOST_PASSWORD = 'Stdlib2109com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
