@@ -2,10 +2,12 @@ import * as actionTypes from "../actions/actionTypes";
 import { updateObject } from "../utility";
 
 const initialState = {
+  username: null,
+  email: null,
   token: null,
   error: null,
   loading: false,
-  verified: false,
+  verified: null,
 };
 
 const authStart = (state, action) => {

@@ -37,10 +37,10 @@ export const verifyStart = () => {
   };
 };
 
-export const verifySuccess = () => {
+export const verifySuccess = (value) => {
   return {
     type: actionTypes.VERIFICATION_SUCCESS,
-    verified: true,
+    verified: value,
   };
 };
 
@@ -50,17 +50,15 @@ export const verifyFail = (error) => {
     error: error,
   };
 };
-export const verifyFetch = (username, email) => {
+export const verifyFetch = () => {
   return (dispatch) => {
     dispatch(verifyStart());
     const token = localStorage.getItem("token");
-    console.log(username, email, token);
+    console.log(token);
     let authAxios = getAuthAxios();
     authAxios
       .get("http://127.0.0.1:8000/api/verify/", {
         params: {
-          username,
-          email,
           token,
         },
       })
@@ -74,7 +72,22 @@ export const verifyFetch = (username, email) => {
 };
 
 export const verifyCheckState = () => {
-  return (dispatch) => {};
+  return (dispatch) => {
+    let authAxios = getAuthAxios();
+    authAxios
+      .get("http://127.0.0.1:8000/api/user-verification/")
+      .then((res) => {
+        console.log(res);
+        if (res.data.verification === true) {
+          dispatch(verifySuccess(true));
+        } else {
+          dispatch(verifySuccess(false));
+        }
+      })
+      .catch((err) => {
+        dispatch(verifyFail(err));
+      });
+  };
 };
 
 export const checkAuthTimeout = (expirationTime) => {
@@ -99,7 +112,7 @@ export const authLogin = (username, password) => {
         localStorage.setItem("token", token);
         localStorage.setItem("expirationDate", expirationDate);
         dispatch(authSuccess(token));
-        dispatch(verifySuccess());
+        dispatch(verifyCheckState());
         dispatch(checkAuthTimeout(3600));
       })
       .catch((err) => {
@@ -122,7 +135,7 @@ export const authLoginGoogle = (res) => {
         localStorage.setItem("token", token);
         localStorage.setItem("expirationDate", expirationDate);
         dispatch(authSuccess(token));
-        dispatch(verifySuccess());
+        dispatch(verifySuccess(true));
         dispatch(checkAuthTimeout(3600));
       })
       .catch((err) => {
@@ -148,7 +161,7 @@ export const authSignup = (username, email, password1, password2) => {
         localStorage.setItem("token", token);
         localStorage.setItem("expirationDate", expirationDate);
         dispatch(authSuccess(token));
-        dispatch(verifyFetch(username, email));
+        dispatch(verifyFetch());
         dispatch(checkAuthTimeout(3600));
       })
       .catch((err) => {
@@ -168,6 +181,7 @@ export const authCheckState = () => {
         dispatch(logout());
       } else {
         dispatch(authSuccess(token));
+        dispatch(verifyCheckState());
         dispatch(
           checkAuthTimeout(
             (expirationDate.getTime() - new Date().getTime()) / 1000

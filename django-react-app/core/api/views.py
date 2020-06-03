@@ -36,6 +36,7 @@ import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+
 class VerifyEmailView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -54,12 +55,14 @@ class ConfirmEmailView(APIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request, *args, **kwargs):
-        template = render_to_string('email_template.txt', {'name': request.query_params.get('username', 'client'), 'token': request.query_params.get('token', None)})
+        token = request.query_params.get('token', None)
+        user = Token.objects.get(key=token).user
+        template = render_to_string('email_template.txt', {'name': user.username, 'token': token})
         email = EmailMessage(
             'Super-sonic-jet-administration',
             template,
             settings.EMAIL_HOST_USER,
-            [self.request.query_params.get('email', 'grishapod228@gmail.com')]
+            [user.email]
         )
         email.fail_silently = False
         email.send()
@@ -84,6 +87,10 @@ class UserIDView(APIView):
     def get(self, request, *args, **kwargs):
         return Response({'userID': request.user.id}, status=HTTP_200_OK)
 
+class UserVerificationView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, *args, **kwargs):
+        return Response({'verification': UserProfile.objects.get(user__id=request.user.id).email_verification}, status=HTTP_200_OK)
 
 class ItemListView(ListAPIView):
     permission_classes = (AllowAny,)
