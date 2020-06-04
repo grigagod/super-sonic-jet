@@ -1,8 +1,7 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
 from core.models import (
-    Address, Item, Order, OrderItem, Coupon, Variation, ItemVariation,
-    Payment
+    Address, Item, Order, OrderItem, Coupon, Category
 )
 
 
@@ -22,7 +21,6 @@ class CouponSerializer(serializers.ModelSerializer):
 
 
 class ItemSerializer(serializers.ModelSerializer):
-    category = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
 
     class Meta:
@@ -32,53 +30,42 @@ class ItemSerializer(serializers.ModelSerializer):
             'title',
             'price',
             'discount_price',
-            'category',
             'label',
             'slug',
+            'size',
             'description',
             'image'
         )
-
-    def get_category(self, obj):
-        return obj.get_category_display()
 
     def get_label(self, obj):
         return obj.get_label_display()
 
 
-class VariationDetailSerializer(serializers.ModelSerializer):
-    item = serializers.SerializerMethodField()
-
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Variation
+        model = Category
         fields = (
             'id',
             'name',
-            'item'
+            'image'
         )
 
-    def get_item(self, obj):
-        return ItemSerializer(obj.item).data
 
-
-class ItemVariationDetailSerializer(serializers.ModelSerializer):
-    variation = serializers.SerializerMethodField()
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
 
     class Meta:
-        model = ItemVariation
+        model = Category
         fields = (
             'id',
-            'value',
-            'attachment',
-            'variation'
+            'items'
         )
-
-    def get_variation(self, obj):
-        return VariationDetailSerializer(obj.variation).data
+    
+    def get_items(self, obj):
+        return ItemSerializer(obj.items.all(), many=True).data
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    item_variations = serializers.SerializerMethodField()
     item = serializers.SerializerMethodField()
     final_price = serializers.SerializerMethodField()
 
@@ -87,16 +74,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'item',
-            'item_variations',
-            'quantity',
             'final_price'
         )
 
     def get_item(self, obj):
         return ItemSerializer(obj.item).data
-
-    def get_item_variations(self, obj):
-        return ItemVariationDetailSerializer(obj.item_variations.all(), many=True).data
 
     def get_final_price(self, obj):
         return obj.get_final_price()
@@ -112,6 +94,11 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'order_items',
+            'ordered_date',
+            'being_delivered',
+            'received',
+            'refund_requested',
+            'refund_granted',
             'total',
             'coupon'
         )
@@ -128,35 +115,8 @@ class OrderSerializer(serializers.ModelSerializer):
         return None
 
 
-class ItemVariationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ItemVariation
-        fields = (
-            'id',
-            'value',
-            'attachment'
-        )
-
-
-class VariationSerializer(serializers.ModelSerializer):
-    item_variations = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Variation
-        fields = (
-            'id',
-            'name',
-            'item_variations'
-        )
-
-    def get_item_variations(self, obj):
-        return ItemVariationSerializer(obj.itemvariation_set.all(), many=True).data
-
-
 class ItemDetailSerializer(serializers.ModelSerializer):
-    category = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
-    variations = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -165,12 +125,11 @@ class ItemDetailSerializer(serializers.ModelSerializer):
             'title',
             'price',
             'discount_price',
-            'category',
             'label',
             'slug',
+            'size',
             'description',
             'image',
-            'variations'
         )
 
     def get_category(self, obj):
@@ -197,14 +156,4 @@ class AddressSerializer(serializers.ModelSerializer):
             'zip',
             'address_type',
             'default'
-        )
-
-
-class PaymentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = (
-            'id',
-            'amount',
-            'timestamp'
         )

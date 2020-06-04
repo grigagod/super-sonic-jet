@@ -26,33 +26,32 @@ import {
   addressUpdateURL,
   addressDeleteURL,
   userIDURL,
-  paymentListURL,
+  ordersListURL,
 } from "../constants";
 import VerifyEmail from "./VerifyEmail";
 import { getAuthAxios } from "../utils";
-import { verifyFetch, verifyCheckState } from "../store/actions/auth";
 
 const UPDATE_FORM = "UPDATE_FORM";
 const CREATE_FORM = "CREATE_FORM";
 
-class PaymentHistory extends React.Component {
+class OrdersHistory extends React.Component {
   state = {
-    payments: [],
+    orders: [],
   };
 
   componentDidMount() {
-    this.handleFetchPayments();
+    this.handleFetchOrders();
   }
 
-  handleFetchPayments = () => {
+  handleFetchOrders = () => {
     this.setState({ loading: true });
     let authAxios = getAuthAxios();
     authAxios
-      .get(paymentListURL)
+      .get(ordersListURL)
       .then((res) => {
         this.setState({
           loading: false,
-          payments: res.data,
+          orders: res.data,
         });
       })
       .catch((err) => {
@@ -61,23 +60,37 @@ class PaymentHistory extends React.Component {
   };
 
   render() {
-    const { payments } = this.state;
+    const { orders } = this.state;
     return (
       <Table celled>
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>ID</Table.HeaderCell>
-            <Table.HeaderCell>Amount</Table.HeaderCell>
+            <Table.HeaderCell>Total Price</Table.HeaderCell>
             <Table.HeaderCell>Date</Table.HeaderCell>
+            <Table.HeaderCell>Status</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {payments.map((p) => {
+          {orders.map((ord) => {
             return (
-              <Table.Row key={p.id}>
-                <Table.Cell>{p.id}</Table.Cell>
-                <Table.Cell>${p.amount}</Table.Cell>
-                <Table.Cell>{new Date(p.timestamp).toUTCString()}</Table.Cell>
+              <Table.Row key={ord.id}>
+                <Table.Cell>{ord.id}</Table.Cell>
+                <Table.Cell>${ord.total}</Table.Cell>
+                <Table.Cell>
+                  {new Date(ord.ordered_date).toUTCString()}
+                </Table.Cell>
+                <Table.Cell>
+                  {ord.refund_granted
+                    ? "Refund Granted"
+                    : ord.refund_requested
+                    ? "Refund Requested"
+                    : ord.received
+                    ? "Received"
+                    : ord.being_delivered
+                    ? " Being Delivered "
+                    : "Ordered"}
+                </Table.Cell>
               </Table.Row>
             );
           })}
@@ -164,7 +177,7 @@ class AddressForm extends React.Component {
       .post(addressCreateURL, {
         ...formData,
         user: userID,
-        address_type: activeItem === "billingAddress" ? "B" : "S",
+        address_type: "S",
       })
       .then((res) => {
         this.setState({
@@ -187,7 +200,7 @@ class AddressForm extends React.Component {
       .put(addressUpdateURL(formData.id), {
         ...formData,
         user: userID,
-        address_type: activeItem === "billingAddress" ? "B" : "S",
+        address_type: "S",
       })
       .then((res) => {
         this.setState({
@@ -288,14 +301,12 @@ class Profile extends React.Component {
 
   handleGetActiveItem = () => {
     const { activeItem } = this.state;
-    if (activeItem === "billingAddress") {
-      return "Billing Address";
-    } else if (activeItem === "shippingAddress") {
+    if (activeItem === "shippingAddress") {
       return "Shipping Address";
-    } else if (activeItem == "verifyEmail") {
+    } else if (activeItem === "verifyEmail") {
       return "Verify Email";
     }
-    return "Payment History";
+    return "Orders History";
   };
 
   handleFormatCountries = (countries) => {
@@ -354,7 +365,7 @@ class Profile extends React.Component {
     const { activeItem } = this.state;
     let authAxios = getAuthAxios();
     authAxios
-      .get(addressListURL(activeItem === "billingAddress" ? "B" : "S"))
+      .get(addressListURL("S"))
       .then((res) => {
         this.setState({ addresses: res.data, loading: false });
       })
@@ -467,19 +478,14 @@ class Profile extends React.Component {
           <Grid.Column width={6}>
             <Menu pointing vertical fluid>
               <Menu.Item
-                name="Billing Address"
-                active={activeItem === "billingAddress"}
-                onClick={() => this.handleItemClick("billingAddress")}
-              />
-              <Menu.Item
                 name="Shipping Address"
                 active={activeItem === "shippingAddress"}
                 onClick={() => this.handleItemClick("shippingAddress")}
               />
               <Menu.Item
-                name="Payment history"
-                active={activeItem === "paymentHistory"}
-                onClick={() => this.handleItemClick("paymentHistory")}
+                name="Orders history"
+                active={activeItem === "ordersHistory"}
+                onClick={() => this.handleItemClick("ordersHistory")}
               />
               <Menu.Item
                 name="Verify email"
@@ -491,8 +497,8 @@ class Profile extends React.Component {
           <Grid.Column width={10}>
             <Header>{this.handleGetActiveItem()}</Header>
             <Divider />
-            {activeItem === "paymentHistory" ? (
-              <PaymentHistory />
+            {activeItem === "ordersHistory" ? (
+              <OrdersHistory />
             ) : activeItem === "verifyEmail" ? (
               <VerifyEmail />
             ) : (

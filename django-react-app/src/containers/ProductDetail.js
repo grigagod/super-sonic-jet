@@ -28,21 +28,12 @@ class ProductDetail extends React.Component {
   state = {
     loading: false,
     error: null,
-    formVisible: false,
     data: [],
-    formData: {},
   };
 
   componentDidMount() {
     this.handleFetchItem();
   }
-
-  handleToggleForm = () => {
-    const { formVisible } = this.state;
-    this.setState({
-      formVisible: !formVisible,
-    });
-  };
 
   handleFetchItem = () => {
     const {
@@ -52,27 +43,22 @@ class ProductDetail extends React.Component {
     axios
       .get(productDetailURL(params.productID))
       .then((res) => {
-        this.setState({ data: res.data, loading: false });
+        console.log(res);
+        this.setState({
+          data: res.data.items,
+          loading: false,
+        });
       })
       .catch((err) => {
         this.setState({ error: err, loading: false });
       });
   };
 
-  handleFormatData = (formData) => {
-    // convert {colour: 1, size: 2} to [1,2] - they're all variations
-    return Object.keys(formData).map((key) => {
-      return formData[key];
-    });
-  };
-
   handleAddToCart = (slug) => {
     this.setState({ loading: true });
-    const { formData } = this.state;
-    const variations = this.handleFormatData(formData);
     let authAxios = getAuthAxios();
     authAxios
-      .post(addToCartURL, { slug, variations })
+      .post(addToCartURL, { slug })
       .then((res) => {
         this.props.refreshCart();
         this.setState({ loading: false });
@@ -82,18 +68,8 @@ class ProductDetail extends React.Component {
       });
   };
 
-  handleChange = (e, { name, value }) => {
-    const { formData } = this.state;
-    const updatedFormData = {
-      ...formData,
-      [name]: value,
-    };
-    this.setState({ formData: updatedFormData });
-  };
-
   render() {
-    const { data, error, formData, formVisible, loading } = this.state;
-    const item = data;
+    const { data, error, loading } = this.state;
     return (
       <Container>
         {error && (
@@ -111,17 +87,31 @@ class ProductDetail extends React.Component {
             <Image src="/images/wireframe/short-paragraph.png" />
           </Segment>
         )}
-        <Grid columns={2} divided>
-          <Grid.Row>
-            <Grid.Column>
-              <Card
-                fluid
-                image={item.image}
-                header={item.title}
-                meta={
-                  <React.Fragment>
-                    {item.category}
-                    {item.discount_price && (
+        <Item.Group divided>
+          {data.map((item) => {
+            return (
+              <Item key={item.id}>
+                <Item.Image src={`http://127.0.0.1:8000${item.image}`} />
+                <Item.Content>
+                  <Item.Header as="h4">{item.title}</Item.Header>
+                  <Item.Meta>
+                    <span className="cinema">{item.category}</span>
+                  </Item.Meta>
+                  <Item.Description>{item.description}</Item.Description>
+                  <Item.Extra>
+                    {
+                      <Button
+                        primary
+                        floated="right"
+                        icon
+                        labelPosition="right"
+                        onClick={() => this.handleAddToCart(item.slug)}
+                      >
+                        Add to cart
+                        <Icon name="cart plus" />
+                      </Button>
+                    }
+                    {item.label && (
                       <Label
                         color={
                           item.label === "primary"
@@ -134,86 +124,12 @@ class ProductDetail extends React.Component {
                         {item.label}
                       </Label>
                     )}
-                  </React.Fragment>
-                }
-                description={item.description}
-                extra={
-                  <React.Fragment>
-                    <Button
-                      fluid
-                      color="yellow"
-                      floated="right"
-                      icon
-                      labelPosition="right"
-                      onClick={this.handleToggleForm}
-                    >
-                      Add to cart
-                      <Icon name="cart plus" />
-                    </Button>
-                  </React.Fragment>
-                }
-              />
-              {formVisible && (
-                <React.Fragment>
-                  <Divider />
-                  <Form onSubmit={() => this.handleAddToCart(item.slug)}>
-                    {data.variations.map((v) => {
-                      const name = v.name.toLowerCase();
-                      return (
-                        <Form.Field key={v.id}>
-                          <Select
-                            name={name}
-                            onChange={this.handleChange}
-                            placeholder={`Select a ${name}`}
-                            fluid
-                            selection
-                            options={v.item_variations.map((item) => {
-                              return {
-                                key: item.id,
-                                text: item.value,
-                                value: item.id,
-                              };
-                            })}
-                            value={formData[name]}
-                          />
-                        </Form.Field>
-                      );
-                    })}
-                    <Form.Button primary>Add</Form.Button>
-                  </Form>
-                </React.Fragment>
-              )}
-            </Grid.Column>
-            <Grid.Column>
-              <Header as="h2">Try different variations</Header>
-              {data.variations &&
-                data.variations.map((v) => {
-                  return (
-                    <React.Fragment key={v.id}>
-                      <Header as="h3">{v.name}</Header>
-                      <Item.Group divided>
-                        {v.item_variations.map((iv) => {
-                          return (
-                            <Item key={iv.id}>
-                              {iv.attachment && (
-                                <Item.Image
-                                  size="tiny"
-                                  src={`http://127.0.0.1:8000${iv.attachment}`}
-                                />
-                              )}
-                              <Item.Content verticalAlign="middle">
-                                {iv.value}
-                              </Item.Content>
-                            </Item>
-                          );
-                        })}
-                      </Item.Group>
-                    </React.Fragment>
-                  );
-                })}
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
+                  </Item.Extra>
+                </Item.Content>
+              </Item>
+            );
+          })}
+        </Item.Group>
       </Container>
     );
   }

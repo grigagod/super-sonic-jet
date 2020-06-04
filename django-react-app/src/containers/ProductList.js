@@ -12,6 +12,7 @@ import {
   Dimmer,
   Message,
   Segment,
+  Header,
 } from "semantic-ui-react";
 
 import { productListURL, addToCartURL } from "../constants";
@@ -38,23 +39,9 @@ class ProductList extends React.Component {
       });
   }
 
-  handleAddToCart = (slug) => {
-    this.setState({ loading: true });
-    let authAxios = getAuthAxios();
-    authAxios
-      .post(addToCartURL, { slug })
-      .then((res) => {
-        console.log(res);
-        this.props.refreshCart();
-        this.setState({ loading: false });
-      })
-      .catch((err) => {
-        this.setState({ error: err, loading: false });
-      });
-  };
-
   render() {
     const { data, error, loading } = this.state;
+    console.log(data);
     return (
       <Container>
         {error && (
@@ -66,8 +53,8 @@ class ProductList extends React.Component {
         )}
         {loading && (
           <Segment>
-            <Dimmer active>
-              <Loader />
+            <Dimmer active inverted>
+              <Loader inverted>Loading</Loader>
             </Dimmer>
 
             <Image src="/images/wireframe/short-paragraph.png" />
@@ -78,34 +65,27 @@ class ProductList extends React.Component {
             return (
               <Item key={item.id}>
                 <Item.Image src={item.image} />
-
-                <Item.Content>
+                <Item.Content verticalAlign="bottom">
                   <Item.Header
                     as="a"
                     onClick={() =>
                       this.props.history.push(`/products/${item.id}`)
                     }
                   >
-                    {item.title}
+                    {item.name}
                   </Item.Header>
-                  <Item.Meta>
-                    <span className="cinema">{item.category}</span>
-                  </Item.Meta>
-                  <Item.Description>{item.description}</Item.Description>
                   <Item.Extra>
-                    <Button
+                    {/* <Button
                       primary
                       floated="right"
                       icon
                       labelPosition="right"
-                      onClick={() =>
-                        this.props.history.push(`/products/${item.id}`)
-                      }
+                      onClick={() => this.handleAddToCart(item.slug)}
                     >
                       Add to cart
                       <Icon name="cart plus" />
-                    </Button>
-                    {item.discount_price && (
+                    </Button> */}
+                    {/*item.discount_price && (
                       <Label
                         color={
                           item.label === "primary"
@@ -117,7 +97,7 @@ class ProductList extends React.Component {
                       >
                         {item.label}
                       </Label>
-                    )}
+                      )*/}
                   </Item.Extra>
                 </Item.Content>
               </Item>

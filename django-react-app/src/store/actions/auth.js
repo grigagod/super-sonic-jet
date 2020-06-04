@@ -30,7 +30,11 @@ export const logout = () => {
     type: actionTypes.AUTH_LOGOUT,
   };
 };
-
+export const verifyFetch = () => {
+  return {
+    type: actionTypes.VERIFICATION_FETCH,
+  };
+};
 export const verifyStart = () => {
   return {
     type: actionTypes.VERIFICATION_START,
@@ -50,9 +54,9 @@ export const verifyFail = (error) => {
     error: error,
   };
 };
-export const verifyFetch = () => {
+export const verifyEmailSend = () => {
   return (dispatch) => {
-    dispatch(verifyStart());
+    dispatch(verifyFetch());
     const token = localStorage.getItem("token");
     console.log(token);
     let authAxios = getAuthAxios();
@@ -73,6 +77,7 @@ export const verifyFetch = () => {
 
 export const verifyCheckState = () => {
   return (dispatch) => {
+    dispatch(verifyStart());
     let authAxios = getAuthAxios();
     authAxios
       .get("http://127.0.0.1:8000/api/user-verification/")
@@ -83,6 +88,7 @@ export const verifyCheckState = () => {
         } else {
           dispatch(verifySuccess(false));
         }
+        return res.data.verification;
       })
       .catch((err) => {
         dispatch(verifyFail(err));

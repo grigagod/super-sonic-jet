@@ -21,34 +21,53 @@ import {
   Container,
 } from "semantic-ui-react";
 
-import { getAuthAxios } from "../utils";
-import { verifyFetch, verifyCheckState } from "../store/actions/auth";
+import { verifyCheckState, verifyEmailSend } from "../store/actions/auth";
 
 class VerifyEmail extends React.Component {
   componentDidMount() {
     this.handleCheckVerification();
   }
   handleCheckVerification = () => {
-    this.setState({ loading: true });
     this.props.verifyCheck();
   };
   handleSendEmail = () => {
     this.props.tryToVerify();
   };
   render() {
-    const { isVerified } = this.props;
+    const { isVerified, loading, error } = this.props;
     return (
       <Container>
         <Segment>
           <Label>
             {isVerified ? "Email verification" : "Check for verification"}
           </Label>
-          <Button
-            circular
-            icon={isVerified ? "check circle outline" : "circle outline"}
-            basic-size="small"
-            onClick={!isVerified ? () => this.handleCheckVerification() : null}
-          ></Button>
+          {loading ? (
+            <Button
+              circular
+              loading
+              icon="spinner"
+              basic-size="small"
+              floated="right"
+            >
+              <Icon />
+            </Button>
+          ) : (
+            <Button
+              circular
+              icon
+              basic-size="small"
+              floated="right"
+              onClick={
+                !isVerified ? () => this.handleCheckVerification() : null
+              }
+            >
+              {isVerified ? (
+                <Icon color="green" name="check circle outline"></Icon>
+              ) : (
+                <Icon color="red" name="circle outline"></Icon>
+              )}
+            </Button>
+          )}
         </Segment>
         {!isVerified ? (
           <Segment>
@@ -65,11 +84,14 @@ class VerifyEmail extends React.Component {
 const mapStateToProps = (state) => {
   return {
     isVerified: state.auth.verified,
+    loading: state.auth.loading,
+    error: state.auth.error,
   };
 };
 const mapDispatchToProps = (dispatch) => {
   return {
-    tryToVerify: (username, email) => dispatch(verifyFetch(username, email)),
+    tryToVerify: (username, email) =>
+      dispatch(verifyEmailSend(username, email)),
     verifyCheck: () => dispatch(verifyCheckState()),
   };
 };

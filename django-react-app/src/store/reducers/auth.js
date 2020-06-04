@@ -37,6 +37,13 @@ const authLogout = (state, action) => {
     token: null,
   });
 };
+const verifyFetch = (state, action) => {
+  return updateObject(state, {
+    error: null,
+    loading: false,
+  });
+};
+
 const verifyStart = (state, action) => {
   return updateObject(state, {
     error: null,
@@ -75,6 +82,8 @@ const reducer = (state = initialState, action) => {
       return verifySuccess(state, action);
     case actionTypes.VERIFICATION_FAIL:
       return verifyFail(state, action);
+    case actionTypes.VERIFICATION_FETCH:
+      return verifyFetch(state, action);
     default:
       return state;
   }

@@ -9,9 +9,11 @@ import {
   List,
   Menu,
   Segment,
+  Icon,
 } from "semantic-ui-react";
 import { Link, withRouter } from "react-router-dom";
 import { connect } from "react-redux";
+import { Redirect } from "react-router-dom";
 import { logout } from "../store/actions/auth";
 import { fetchCart } from "../store/actions/cart";
 
@@ -19,65 +21,90 @@ class CustomLayout extends React.Component {
   componentDidMount() {
     this.props.fetchCart();
   }
-
+  handleProfileClick() {
+    return <Redirect to="/profile" />;
+  }
   render() {
     const { authenticated, cart, loading } = this.props;
     return (
       <div>
-        <Menu inverted>
+        <Menu stackable borderless>
           <Container>
+            <Menu.Item>
+              <Image
+                size="mini"
+                src="http://127.0.0.1:8000/media/ico_logo.jpg"
+              />
+            </Menu.Item>
             <Link to="/">
-              <Menu.Item header>Home</Menu.Item>
+              <Menu.Item header as="h3" link>
+                Home
+              </Menu.Item>
             </Link>
             <Link to="/products">
-              <Menu.Item header>Products</Menu.Item>
+              <Menu.Item header as="h3" link>
+                Products
+              </Menu.Item>
             </Link>
             <Menu.Menu position="right">
               {authenticated ? (
                 <React.Fragment>
                   <Link to="/profile">
-                    <Menu.Item>Profile</Menu.Item>
+                    <Menu.Item header as="h3" link>
+                      Profile
+                    </Menu.Item>
                   </Link>
-                  <Dropdown
-                    icon="cart"
-                    loading={loading}
-                    text={`${cart !== null ? cart.order_items.length : 0}`}
-                    pointing
-                    className="link item"
-                  >
-                    <Dropdown.Menu>
-                      {cart &&
-                        cart.order_items.map((element) => {
-                          return (
-                            <Dropdown.Item key={element.id}>
-                              {element.quantity} x {element.item.title}
-                            </Dropdown.Item>
-                          );
-                        })}
-                      {cart && cart.order_items.length < 1 ? (
-                        <Dropdown.Item>No items in your cart</Dropdown.Item>
-                      ) : null}
-                      <Dropdown.Divider />
-                      <Dropdown.Item
-                        icon="arrow right"
-                        text="Checkout"
-                        onClick={() =>
-                          this.props.history.push("/order-summary")
-                        }
-                      />
-                    </Dropdown.Menu>
-                  </Dropdown>
-                  <Menu.Item header onClick={() => this.props.logout()}>
-                    Logout
-                  </Menu.Item>
+                  <a>
+                    <Dropdown
+                      icon="cart"
+                      size="mini"
+                      loading={loading}
+                      text={`${cart !== null ? cart.order_items.length : 0}`}
+                      pointing
+                      className="link item"
+                      as="h3"
+                    >
+                      <Dropdown.Menu>
+                        {cart &&
+                          cart.order_items.map((element) => {
+                            return (
+                              <Dropdown.Item key={element.id}>
+                                1 x {element.item.title}
+                              </Dropdown.Item>
+                            );
+                          })}
+                        {cart && cart.order_items.length < 1 ? (
+                          <Dropdown.Item>No items in your cart</Dropdown.Item>
+                        ) : null}
+                        <Dropdown.Divider />
+                        <Dropdown.Item
+                          icon="arrow right"
+                          text="Checkout"
+                          onClick={() =>
+                            this.props.history.push("/order-summary")
+                          }
+                        />
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </a>
+
+                  <Link to="/" onClick={() => this.props.logout()}>
+                    <Menu.Item header as="h3" link>
+                      Logout
+                    </Menu.Item>
+                  </Link>
                 </React.Fragment>
               ) : (
                 <React.Fragment>
                   <Link to="/login">
-                    <Menu.Item header>Login</Menu.Item>
+                    <Menu.Item header as="h3" link>
+                      Login
+                    </Menu.Item>
                   </Link>
                   <Link to="/signup">
-                    <Menu.Item header>Signup</Menu.Item>
+                    <Menu.Item header as="h3" link>
+                      Signup
+                    </Menu.Item>
                   </Link>
                 </React.Fragment>
               )}

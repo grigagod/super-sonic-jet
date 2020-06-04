@@ -5,86 +5,303 @@ import {
   Elements,
   StripeProvider,
 } from "react-stripe-elements";
-import { Button, Container, Message } from "semantic-ui-react";
+import {
+  Button,
+  Container,
+  Dimmer,
+  Divider,
+  Form,
+  Header,
+  Image,
+  Item,
+  Label,
+  Loader,
+  Message,
+  Segment,
+  Select,
+} from "semantic-ui-react";
 import { getAuthAxios } from "../utils";
-import { checkoutURL } from "../constants";
+import {
+  orderDoneURL,
+  orderSummaryURL,
+  addCouponURL,
+  addressListURL,
+} from "../constants";
+import { Link } from "react-router-dom";
+
+const OrderPreview = (props) => {
+  const { data } = props;
+  return (
+    <React.Fragment>
+      {data && (
+        <React.Fragment>
+          <Item.Group relaxed>
+            {data.order_items.map((orderItem, i) => {
+              return (
+                <Item key={i}>
+                  <Item.Image
+                    size="tiny"
+                    src={`http://127.0.0.1:8000${orderItem.item.image}`}
+                  />
+                  <Item.Content verticalAlign="middle">
+                    <Item.Header as="a">
+                      {orderItem.quantity} x {orderItem.item.title}
+                    </Item.Header>
+                    <Item.Extra>
+                      <Label>${orderItem.final_price}</Label>
+                    </Item.Extra>
+                  </Item.Content>
+                </Item>
+              );
+            })}
+          </Item.Group>
+
+          <Item.Group>
+            <Item>
+              <Item.Content>
+                <Item.Header>
+                  Order Total: ${data.total}
+                  {data.coupon && (
+                    <Label color="green" style={{ marginLeft: "10px" }}>
+                      Current coupon: {data.coupon.code} for $
+                      {data.coupon.amount}
+                    </Label>
+                  )}
+                </Item.Header>
+              </Item.Content>
+            </Item>
+          </Item.Group>
+        </React.Fragment>
+      )}
+    </React.Fragment>
+  );
+};
+
+class CouponForm extends Component {
+  state = {
+    code: "",
+  };
+
+  handleChange = (e) => {
+    this.setState({
+      code: e.target.value,
+    });
+  };
+
+  handleSubmit = (e) => {
+    const { code } = this.state;
+    this.props.handleAddCoupon(e, code);
+    this.setState({ code: "" });
+  };
+
+  render() {
+    const { code } = this.state;
+    return (
+      <React.Fragment>
+        <Form onSubmit={this.handleSubmit}>
+          <Form.Field>
+            <label>Coupon code</label>
+            <input
+              placeholder="Enter a coupon.."
+              value={code}
+              onChange={this.handleChange}
+            />
+          </Form.Field>
+          <Button type="submit">Submit</Button>
+        </Form>
+      </React.Fragment>
+    );
+  }
+}
 
 class CheckoutFrom extends Component {
   state = {
+    data: null,
     loading: false,
     error: null,
-    succses: false,
+    success: false,
+    shippingAddresses: [],
+    selectedShippingAddress: "",
+  };
+
+  componentDidMount() {
+    this.handleFetchOrder();
+    this.handleFetchShippingAddresses();
+  }
+
+  handleGetDefaultAddress = (addresses) => {
+    const filteredAddresses = addresses.filter((el) => el.default === true);
+    if (filteredAddresses.length > 0) {
+      return filteredAddresses[0].id;
+    }
+    return "";
+  };
+
+  handleFetchShippingAddresses = () => {
+    this.setState({ loading: true });
+    let authAxios = getAuthAxios();
+    authAxios
+      .get(addressListURL("S"))
+      .then((res) => {
+        this.setState({
+          shippingAddresses: res.data.map((a) => {
+            return {
+              key: a.id,
+              text: `${a.street_address}, ${a.apartment_address}, ${a.country}`,
+              value: a.id,
+            };
+          }),
+          selectedShippingAddress: this.handleGetDefaultAddress(res.data),
+          loading: false,
+        });
+      })
+      .catch((err) => {
+        this.setState({ error: err, loading: false });
+      });
+  };
+
+  handleFetchOrder = () => {
+    this.setState({ loading: true });
+    let authAxios = getAuthAxios();
+    authAxios
+      .get(orderSummaryURL)
+      .then((res) => {
+        this.setState({ data: res.data, loading: false });
+      })
+      .catch((err) => {
+        if (err.response.status === 404) {
+          this.props.history.push("/products");
+        } else {
+          this.setState({ error: err, loading: false });
+        }
+      });
+  };
+
+  handleAddCoupon = (e, code) => {
+    e.preventDefault();
+    this.setState({ loading: true });
+    let authAxios = getAuthAxios();
+    authAxios
+      .post(addCouponURL, { code })
+      .then((res) => {
+        this.setState({ loading: false });
+        this.handleFetchOrder();
+      })
+      .catch((err) => {
+        this.setState({ error: err, loading: false });
+      });
+  };
+
+  handleSelectChange = (e, { name, value }) => {
+    this.setState({ [name]: value });
   };
 
   submit = (ev) => {
     ev.preventDefault();
     this.setState({ loading: true });
-    if (this.props.stripe) {
-      this.props.stripe.createToken().then((result) => {
-        if (result.error) {
-          this.setState({ error: result.error.message, loading: false });
-        } else {
-          let authAxios = getAuthAxios();
-          authAxios
-            .post(checkoutURL, { stripeToken: result.token.id })
-            .then((res) => {
-              this.setState({ loading: false, success: true });
-            })
-            .catch((err) => {
-              this.setState({ loading: false, error: err });
-            });
-        }
+    const { selectedShippingAddress } = this.state;
+    let authAxios = getAuthAxios();
+    let token = localStorage.getItem("token");
+    authAxios
+      .post(orderDoneURL, {
+        selectedShippingAddress,
+        token,
+      })
+      .then((res) => {
+        console.log(res);
+        this.setState({ loading: false, success: true });
+      })
+      .catch((err) => {
+        this.setState({ loading: false, error: err });
       });
-    }
-    console.log("Stripe is not loaded");
   };
 
   render() {
-    const { error, loading, success } = this.state;
+    const {
+      data,
+      error,
+      loading,
+      success,
+      shippingAddresses,
+      selectedShippingAddress,
+    } = this.state;
+
     return (
       <div>
         {error && (
-          <Message negative>
-            <Message.Header>Your payment was unsuccessful</Message.Header>
-            <p>{JSON.stringify(error)}</p>
-          </Message>
+          <Message
+            error
+            header="There was some errors with your submission"
+            content={JSON.stringify(error)}
+          />
         )}
-        {success && (
-          <Message positive>
-            <Message.Header>You are eligible for a reward</Message.Header>
-            <p>
-              Go to your <b>profile</b> to see the order delivery status.
-            </p>
-          </Message>
+        {loading && (
+          <Segment>
+            <Dimmer active inverted>
+              <Loader inverted>Loading</Loader>
+            </Dimmer>
+            <Image src="/images/wireframe/short-paragraph.png" />
+          </Segment>
         )}
-        <p>Would you like to complete the purchase?</p>
-        <CardElement />
-        <Button
-          loading={loading}
-          disabled={loading}
-          primary
-          onClick={this.submit}
-          style={{ marginTop: "10px" }}
-        >
-          Submit
-        </Button>
+
+        <OrderPreview data={data} />
+        <Divider />
+        <CouponForm
+          handleAddCoupon={(e, code) => this.handleAddCoupon(e, code)}
+        />
+        <Divider />
+        <Header>Select a shipping address</Header>
+        {shippingAddresses.length > 0 ? (
+          <Select
+            name="selectedShippingAddress"
+            value={selectedShippingAddress}
+            clearable
+            options={shippingAddresses}
+            selection
+            onChange={this.handleSelectChange}
+          />
+        ) : (
+          <p>
+            You need to <Link to="/profile">add a shipping address</Link>
+          </p>
+        )}
+        <Divider />
+
+        {shippingAddresses.length < 1 ? (
+          <p>You need to add addresses before you can complete your purchase</p>
+        ) : (
+          <React.Fragment>
+            <Header>Would you like to complete the purchase?</Header>
+            {success && (
+              <Message positive>
+                <Message.Header>Your payment was successful</Message.Header>
+                <p>
+                  Go to your <b>profile</b> to see the order delivery status.
+                </p>
+              </Message>
+            )}
+            <Button
+              loading={loading}
+              disabled={loading}
+              primary
+              onClick={this.submit}
+              style={{ marginTop: "10px" }}
+            >
+              Submit
+            </Button>
+          </React.Fragment>
+        )}
       </div>
     );
   }
 }
 
-const InjectedForm = injectStripe(CheckoutFrom);
-
 const WrappedForm = () => (
   <Container text>
-    <StripeProvider apiKey="'pk_test_JJ1eMdKN0Hp4UFJ6kWXWO4ix00jtXzq5XG'">
-      <div>
-        <h1>Complete your order</h1>
-        <Elements>
-          <InjectedForm />
-        </Elements>
-      </div>
-    </StripeProvider>
+    <div>
+      <h1>Complete your order</h1>
+      <CheckoutFrom />
+    </div>
   </Container>
 );
 

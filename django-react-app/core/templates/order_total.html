@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>New order</title>
+    <style>
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 5px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    {% if order.order_items %}
+    <table style="width: 100%;">
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Final price</th>
+      </tr>
+      {% for order_item in order.order_items %}
+      <tr>
+        <td>{{ order_item.item.id }}</td>
+        <td>{{ order_item.item.title }}</td>
+        <td>{{ order_item.final_price}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td></td>
+        <td>Total:</td>
+        <td>{{ order.total }}</td>
+      </tr>
+    </table>
+    <div>
+      Client email: {{ client.email}}
+    </div>
+    {% else %}
+    <p>Something is wrong</p>
+    {% endif %}
+  </body>
+</html>
