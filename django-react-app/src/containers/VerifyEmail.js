@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import { createNotification } from "../notifications";
 import { Redirect } from "react-router-dom";
 import {
   Button,
@@ -71,7 +72,8 @@ class VerifyEmail extends React.Component {
         </Segment>
         {!isVerified ? (
           <Segment>
-            <Button icon onClick={() => this.handleSendEmail()}>
+            <Label>Send email</Label>
+            <Button icon floated="right" onClick={() => this.handleSendEmail()}>
               <Icon name="envelope outline"></Icon>
             </Button>
           </Segment>

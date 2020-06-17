@@ -1,6 +1,8 @@
 import axios from "axios";
 import { getAuthAxios } from "../../utils";
+import { fetchCart } from "./cart";
 import * as actionTypes from "./actionTypes";
+import { createNotification } from "../../notifications";
 
 export const authStart = () => {
   return {
@@ -68,9 +70,17 @@ export const verifyEmailSend = () => {
       })
       .then((res) => {
         console.log(res);
+        createNotification(
+          "info",
+          "Email with verification was send. After accepting check for verification in Profile"
+        ).apply();
       })
       .catch((err) => {
         dispatch(verifyFail(err));
+        createNotification(
+          "error",
+          "Email with verification wasn't send"
+        ).apply();
       });
   };
 };
@@ -85,8 +95,13 @@ export const verifyCheckState = () => {
         console.log(res);
         if (res.data.verification === true) {
           dispatch(verifySuccess(true));
+          createNotification("success", "Your account is verified").apply();
         } else {
           dispatch(verifySuccess(false));
+          createNotification(
+            "warning",
+            "Please verify account in your profile"
+          ).apply();
         }
         return res.data.verification;
       })
@@ -119,6 +134,7 @@ export const authLogin = (username, password) => {
         localStorage.setItem("expirationDate", expirationDate);
         dispatch(authSuccess(token));
         dispatch(verifyCheckState());
+        dispatch(fetchCart());
         dispatch(checkAuthTimeout(3600));
       })
       .catch((err) => {
@@ -142,6 +158,7 @@ export const authLoginGoogle = (res) => {
         localStorage.setItem("expirationDate", expirationDate);
         dispatch(authSuccess(token));
         dispatch(verifySuccess(true));
+        dispatch(fetchCart());
         dispatch(checkAuthTimeout(3600));
       })
       .catch((err) => {

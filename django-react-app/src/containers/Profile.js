@@ -301,12 +301,12 @@ class Profile extends React.Component {
 
   handleGetActiveItem = () => {
     const { activeItem } = this.state;
-    if (activeItem === "shippingAddress") {
-      return "Shipping Address";
+    if (activeItem === "ordersHistory") {
+      return "Orders History";
     } else if (activeItem === "verifyEmail") {
       return "Verify Email";
     }
-    return "Orders History";
+    return "Shipping Address";
   };
 
   handleFormatCountries = (countries) => {

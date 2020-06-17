@@ -1,13 +1,9 @@
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers
+from django.db.models import Q
 from core.models import (
     Address, Item, Order, OrderItem, Coupon, Category
 )
-
-
-class StringSerializer(serializers.StringRelatedField):
-    def to_internal_value(self, value):
-        return value
 
 
 class CouponSerializer(serializers.ModelSerializer):
@@ -62,7 +58,7 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         )
     
     def get_items(self, obj):
-        return ItemSerializer(obj.items.all(), many=True).data
+        return ItemSerializer(obj.items.filter(~Q(orderitem__ordered=True)), many=True).data
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -117,7 +113,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class ItemDetailSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Item
         fields = (

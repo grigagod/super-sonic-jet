@@ -26,6 +26,7 @@ import {
   orderDoneURL,
 } from "../constants";
 import { Link } from "react-router-dom";
+import { createNotification } from "../notifications";
 
 class OrderSummary extends React.Component {
   state = {
@@ -75,6 +76,10 @@ class OrderSummary extends React.Component {
     const { data, error, loading } = this.state;
     const { isVerified } = this.props;
     if (!isVerified) {
+      createNotification(
+        "warning",
+        "Please verify account in your profile"
+      ).apply();
       return <Redirect to="/profile" />;
     }
     console.log(data);

@@ -123,6 +123,8 @@ class OrderItemDeleteView(DestroyAPIView):
 
 
 class AddToCartView(APIView):
+    permission_classes = (IsAuthenticated, )
+
     def post(self, request, *args, **kwargs):
         slug = request.data.get('slug', None)
         if slug is None:
@@ -194,8 +196,8 @@ class OrderDoneView(APIView):
             html_content = get_template('order_total.html').render({'order': OrderSerializer(order).data, 'client': user})
             msg = EmailMultiAlternatives(
                 'Super-sonic-jet-administration',
-                'text_content', 
-                settings.EMAIL_HOST_USER, 
+                'text_content',
+                settings.EMAIL_HOST_USER,
                 ["supersjorders@gmail.com"])
             msg.attach_alternative(html_content, "text/html")
             msg.send()

@@ -27,7 +27,9 @@ import {
   addCouponURL,
   addressListURL,
 } from "../constants";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
+import { connect } from "react-redux";
+import { fetchCart } from "../store/actions/cart";
 
 const OrderPreview = (props) => {
   const { data } = props;
@@ -208,7 +210,6 @@ class CheckoutFrom extends Component {
         token,
       })
       .then((res) => {
-        console.log(res);
         this.setState({ loading: false, success: true });
       })
       .catch((err) => {
@@ -228,7 +229,7 @@ class CheckoutFrom extends Component {
 
     return (
       <div>
-        {error && (
+        {error && console.log(error) && (
           <Message
             error
             header="There was some errors with your submission"

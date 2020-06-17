@@ -23,6 +23,7 @@ import {
 import { productDetailURL, addToCartURL } from "../constants";
 import { fetchCart } from "../store/actions/cart";
 import { getAuthAxios } from "../utils";
+import { createNotification } from "../notifications";
 
 class ProductDetail extends React.Component {
   state = {
@@ -64,6 +65,18 @@ class ProductDetail extends React.Component {
         this.setState({ loading: false });
       })
       .catch((err) => {
+        console.log(err.response);
+        if (err.response.status === 401 || err.response.status === 400) {
+          if (err.response.data.message === "Already added") {
+            createNotification(
+              "warning",
+              "This item is already in cart"
+            ).apply();
+          } else {
+            createNotification("warning", "Please log-in or sign-up").apply();
+            this.props.history.push("/products");
+          }
+        }
         this.setState({ error: err, loading: false });
       });
   };
@@ -72,13 +85,6 @@ class ProductDetail extends React.Component {
     const { data, error, loading } = this.state;
     return (
       <Container>
-        {error && (
-          <Message
-            error
-            header="There was some errors with your submission"
-            content={JSON.stringify(error)}
-          />
-        )}
         {loading && (
           <Segment>
             <Dimmer active inverted>
